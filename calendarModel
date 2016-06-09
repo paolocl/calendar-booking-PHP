@@ -4,6 +4,7 @@
  * User: paolocastro
  * Date: 07/06/2016
  * Time: 19:11
+ * Creation of a calendar in php with out JQUERY and with a form/input/typeRadio
  */
 namespace App\Models\Calendar;
 
@@ -18,16 +19,28 @@ class CalendarModel
     private $currentDate=null;
     private $daysInMonth=0;
     private $naviHref= null;
+    private $numbreOfDayToRemove = []; // ['14-6-2016',...]
+    private $dayToRemove = []; //['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche']
+    private $monthToRemove = []; //['01','02','03','04',..]
+
     /**
-    * Constructor
-    */
-    public function __construct(){
+     * Constructor set the day, week and mounth to remove
+     * CalendarModel constructor.
+     * @param array $dayToRemove
+     * @param array $numbreOfDayToRemove
+     * @param array $monthToRemove
+     */
+    public function __construct($dayToRemove = [], $numbreOfDayToRemove = [],$monthToRemove=[]){
         $this->naviHref = htmlentities("http://$_SERVER[HTTP_HOST]$_SERVER[REDIRECT_URL]");
+        $this->dayToRemove = $dayToRemove;
+        $this->numbreOfDayToRemove = $numbreOfDayToRemove;
+        $this->monthToRemove = $monthToRemove;
     }
 
 
     /**
      * print out the calendar
+     * @return string
      */
 
     public function show() {
@@ -79,9 +92,13 @@ class CalendarModel
         $content.='</div>';
         return $content;
     }
+
     /**
-    * create the li element for ul
-    */
+     * create the table
+     * @param $cellNumber
+     * @return string
+     */
+
     private function _showDay($cellNumber){
         $curMonth = $this->currentMonth==1?12:intval($this->currentMonth);
 
@@ -99,26 +116,36 @@ class CalendarModel
             $this->currentDate =null;
             $cellContent=null;
         }
-        if($cellContent != null){
-            if($cellContent > date('j') && $curMonth >= date('m')){
-                return "<input type='radio' name='date' value='$this->currentDate'  id='$cellContent'><label for='$cellContent'>$cellContent</label>";
+        //if $cellContent exist
+        var_dump($this->dayToRemove);
+        var_dump(in_array(strftime("%A",strtotime("$cellContent-$curMonth-$this->currentYear")),$this->dayToRemove));
+        echo 'mois';
+        var_dump($this->monthToRemove);
+        var_dump(strftime("%m",strtotime("$cellContent-$curMonth-$this->currentYear")));
+        var_dump(in_array(strftime("%m",strtotime("$cellContent-$curMonth-$this->currentYear")),$this->monthToRemove));
+        echo 'jour';
+        var_dump($this->numbreOfDayToRemove);
+        var_dump("$cellContent-$curMonth-$this->currentYear");
+        var_dump(in_array("$cellContent-$curMonth-$this->currentYear",$this->numbreOfDayToRemove));
+            if($cellContent > date('j') && $curMonth >= date('m') && $cellContent != null){
+                return "<input type='radio' name='date' value='$this->currentDate'  id='$cellContent'><label for='$cellContent'>$cellContent</label>".strftime("%A",strtotime("$cellContent-$curMonth-$this->currentYear"))."$cellContent/$curMonth/$this->currentYear";
             }
-            elseif($cellContent <= date('j') && $curMonth == date('m'))
+            elseif($cellContent <= date('j') && $curMonth == date('m') || $cellContent == null)
             {
                 return "<input type='radio' name='date' value='$this->currentDate' id='$cellContent' disabled='disabled' class='disabled'><label for='$cellContent'>$cellContent</label>";
             }else{
                 return "<input type='radio' name='date' value='$this->currentDate'  id='$cellContent'><label for='$cellContent'>$cellContent</label>";
             }
-        };
-        return '';
         // disabled='disabled'
         //return '<li id="li-'.$this->currentDate.'" class="'.($cellNumber%7==1?' start ':($cellNumber%7==0?' end ':' ')).
            // ($cellContent==null?'mask':'').'">'.$cellContent.'</li>';
     }
 
     /**
-    * create navigation
-    */
+     * create navigation
+     * @return string
+     */
+
     private function _createNavi(){
         setlocale(LC_TIME, 'fr_FR.UTF8', 'fr.UTF8', 'fr_FR.UTF-8', 'fr.UTF-8');
         $nextMonth = $this->currentMonth==12?1:intval($this->currentMonth)+1;
@@ -138,9 +165,11 @@ class CalendarModel
             '</div>';
         }
     }
+
     /**
-    * create calendar week labels
-    */
+     * create calendar week label
+     * @return string
+     */
     private function _createLabels(){
         $content='';
         foreach($this->dayLabels as $index=>$label){
@@ -148,9 +177,13 @@ class CalendarModel
         }
         return $content;
     }
+
     /**
-    * calculate number of weeks in a particular month
-    */
+     * calculate number of weeks in a particular month
+     * @param null $month
+     * @param null $year
+     * @return int
+     */
     private function _weeksInMonth($month = null, $year = null){
         if( null==($year) ) {
             $year = date("Y",time());
@@ -167,10 +200,14 @@ class CalendarModel
              $numOfweeks++;
         }
         return $numOfweeks;
-}
+    }
+
     /**
-    * calculate number of days in a particular month
-    */
+     * calculate number of days in a particular month
+     * @param null $month
+     * @param null $year
+     * @return bool|string
+     */
     private function _daysInMonth($month = null, $year = null)
     {
         if (null == ($year)) {
