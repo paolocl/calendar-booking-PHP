@@ -69,12 +69,12 @@ class CalendarModel
         $this->currentYear=$year;
         $this->currentMonth=$month;
         $this->daysInMonth=$this->_daysInMonth($month,$year);
-        $content='<div id="calendar">'.
+        $content='<div id="calendar" class="calendar">'.
             '<div class="box">'.
                 $this->_createNavi().
             '</div>'.
                 '<div class="box-content">'.
-                '<ul class="label">'.$this->_createLabels().
+                '<ul class="label day">'.$this->_createLabels().
             '</ul>';
             $content.='<div class="clear"></div>';
             $content.='<ul class="dates">';
@@ -116,29 +116,20 @@ class CalendarModel
             $this->currentDate =null;
             $cellContent=null;
         }
-        //if $cellContent exist
-        var_dump($this->dayToRemove);
-        var_dump(in_array(strftime("%A",strtotime("$cellContent-$curMonth-$this->currentYear")),$this->dayToRemove));
-        echo 'mois';
-        var_dump($this->monthToRemove);
-        var_dump(strftime("%m",strtotime("$cellContent-$curMonth-$this->currentYear")));
-        var_dump(in_array(strftime("%m",strtotime("$cellContent-$curMonth-$this->currentYear")),$this->monthToRemove));
-        echo 'jour';
-        var_dump($this->numbreOfDayToRemove);
-        var_dump("$cellContent-$curMonth-$this->currentYear");
-        var_dump(in_array("$cellContent-$curMonth-$this->currentYear",$this->numbreOfDayToRemove));
-            if($cellContent > date('j') && $curMonth >= date('m') && $cellContent != null){
-                return "<input type='radio' name='date' value='$this->currentDate'  id='$cellContent'><label for='$cellContent'>$cellContent</label>".strftime("%A",strtotime("$cellContent-$curMonth-$this->currentYear"))."$cellContent/$curMonth/$this->currentYear";
-            }
-            elseif($cellContent <= date('j') && $curMonth == date('m') || $cellContent == null)
-            {
-                return "<input type='radio' name='date' value='$this->currentDate' id='$cellContent' disabled='disabled' class='disabled'><label for='$cellContent'>$cellContent</label>";
-            }else{
-                return "<input type='radio' name='date' value='$this->currentDate'  id='$cellContent'><label for='$cellContent'>$cellContent</label>";
-            }
-        // disabled='disabled'
-        //return '<li id="li-'.$this->currentDate.'" class="'.($cellNumber%7==1?' start ':($cellNumber%7==0?' end ':' ')).
-           // ($cellContent==null?'mask':'').'">'.$cellContent.'</li>';
+        
+        if($cellContent > date('j') && $curMonth >= date('m') && $cellContent != null  && !in_array("$cellContent-$curMonth-$this->currentYear",$this->numbreOfDayToRemove) && !in_array(strftime("%m",strtotime("$cellContent-$curMonth-$this->currentYear")),$this->monthToRemove) && !in_array(strftime("%A",strtotime("$cellContent-$curMonth-$this->currentYear")),$this->dayToRemove)){
+            return "<li><input type='radio' name='date' value='$this->currentDate'  id='$cellContent'><label for='$cellContent' class='click' data-appear='arrondissement'>$cellContent</label></li>"/*.strftime("%A",strtotime("$cellContent-$curMonth-$this->currentYear"))."$cellContent/$curMonth/$this->currentYear"*/;
+        }
+        elseif(($cellContent <= date('j') && $curMonth == date('m') || in_array("$cellContent-$curMonth-$this->currentYear",$this->numbreOfDayToRemove) || in_array(strftime("%m",strtotime("$cellContent-$curMonth-$this->currentYear")),$this->monthToRemove) || in_array(strftime("%A",strtotime("$cellContent-$curMonth-$this->currentYear")),$this->dayToRemove)) && $cellContent != null)
+        {
+            return "<li><input type='radio' name='date' value='$this->currentDate' id='$cellContent' disabled='disabled' class='disabled'><label for='$cellContent'>$cellContent</label></li>";
+        }
+        elseif($cellContent == null)
+        {
+            return "<li><input type='radio' name='date' value='$this->currentDate' id='$cellContent' disabled='disabled' ><label for='$cellContent' class='emptyDate'>$cellContent</label></li>";
+        }else{
+            return "<li><input type='radio' name='date' value='$this->currentDate'  id='$cellContent'><label for='$cellContent' class='click' data-appear='arrondissement'>$cellContent</label></li>";
+        }
     }
 
     /**
@@ -155,13 +146,15 @@ class CalendarModel
 
         if($preMonth >= date('m')){
             return '<div class="header">'.
-                '<a class="prev" href="'.$this->naviHref.'?month='.sprintf('%02d',$preMonth).'&year='.$preYear.'">Précèdent</a>'.
+                '<a class="prev calendarNav" href="'.$this->naviHref.'?month='.sprintf('%02d',$preMonth).'&year='.$preYear.'" data-mounth="'.sprintf('%02d',$preMonth).'" data-year="'.$preYear.'">Précèdent</a>'.
                 '<span class="title">'.strftime('%B %Y',strtotime($this->currentYear.'-'.$this->currentMonth.'-1')).'</span>'.
-                '<a class="next" href="'.$this->naviHref.'?month='.sprintf("%02d", $nextMonth).'&year='.$nextYear.'">Suivant</a>'.
+                '<a class="next calendarNav" href="'.$this->naviHref.'?month='.sprintf("%02d", $nextMonth).'&year='.$nextYear.'" data-mounth="'.sprintf('%02d',$nextMonth).'" data-year="'.$nextYear.'">Suivant</a>'.
                 '</div>';
         }else{
-            return '<span class="title">'.strftime('%B %Y',strtotime($this->currentYear.'-'.$this->currentMonth.'-1')).'</span>'.
-            '<a class="next" href="'.$this->naviHref.'?month='.sprintf("%02d", $nextMonth).'&year='.$nextYear.'">Suivant</a>'.
+            return '<div class="header">'.
+            '<a class="disabled">Précèdent</a>'.
+            '<span class="title">'.strftime('%B %Y',strtotime($this->currentYear.'-'.$this->currentMonth.'-1')).'</span>'.
+            '<a class="next calendarNav" href="'.$this->naviHref.'?month='.sprintf("%02d", $nextMonth).'&year='.$nextYear.'" data-mounth="'.sprintf('%02d',$nextMonth).'" data-year="'.$nextYear.'">Suivant</a>'.
             '</div>';
         }
     }
